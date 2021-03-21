@@ -18,18 +18,23 @@ import com.redmadrobot.inputmask.model.Notation;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.*;
 
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 
 public class RNTextInputMaskModule extends ReactContextBaseJavaModule {
 
     private static final int TEXT_CHANGE_LISTENER_TAG_KEY = 123456789;
-    
+    final List<Notation> customNotations = new ArrayList<Notation>();
     ReactApplicationContext reactContext;
 
     public RNTextInputMaskModule(ReactApplicationContext reactContext) {
         super(reactContext);
         this.reactContext = reactContext;
+        customNotations.add(new Notation('*', "*", true));
+
     }
 
     @Override
@@ -42,8 +47,12 @@ public class RNTextInputMaskModule extends ReactContextBaseJavaModule {
                      final String inputValue,
                      final boolean autocomplete,
                      final Promise promise) {
-      final Mask mask = new Mask(maskString);
-      final String input = inputValue;
+//      final Mask mask = new Mask(maskString);
+
+
+      final Mask mask = new Mask(inputValue, customNotations);
+
+        final String input = inputValue;
       final Mask.Result result = mask.apply(
           new CaretString(
               input,
@@ -60,8 +69,10 @@ public class RNTextInputMaskModule extends ReactContextBaseJavaModule {
                        final String inputValue,
                        final boolean autocomplete,
                        final Promise promise) {
-      final Mask mask = new Mask(maskString);
-      final String input = inputValue;
+//      final Mask mask = new Mask(maskString);
+        final Mask mask = new Mask(inputValue, customNotations);
+
+        final String input = inputValue;
       final Mask.Result result = mask.apply(
           new CaretString(
               input,
@@ -90,7 +101,7 @@ public class RNTextInputMaskModule extends ReactContextBaseJavaModule {
                         if (editText.getTag(TEXT_CHANGE_LISTENER_TAG_KEY) != null) {
                             editText.removeTextChangedListener((TextWatcher) editText.getTag(TEXT_CHANGE_LISTENER_TAG_KEY));
                         }
-                        MaskedTextChangedListener listener = new OnlyChangeIfRequiredMaskedTextChangedListener(mask, autocomplete, autoskip, editText);
+                        MaskedTextChangedListener listener = new OnlyChangeIfRequiredMaskedTextChangedListener(mask, autocomplete, autoskip, editText, customNotations);
                         editText.addTextChangedListener(listener);
                         editText.setOnFocusChangeListener(listener);
                         editText.setTag(TEXT_CHANGE_LISTENER_TAG_KEY, listener);
@@ -106,8 +117,8 @@ public class RNTextInputMaskModule extends ReactContextBaseJavaModule {
  */
 class OnlyChangeIfRequiredMaskedTextChangedListener extends MaskedTextChangedListener {
     private String previousText;
-    public OnlyChangeIfRequiredMaskedTextChangedListener(@NotNull String primaryFormat, boolean autocomplete, boolean autoskip, @NotNull EditText field) {
-        super(primaryFormat, Collections.<String>emptyList(), Collections.<Notation>emptyList(), AffinityCalculationStrategy.WHOLE_STRING, autocomplete, autoskip, field, null, null, false);
+    public OnlyChangeIfRequiredMaskedTextChangedListener(@NotNull String primaryFormat, boolean autocomplete, boolean autoskip, @NotNull EditText field, List<Notation> customNotations) {
+        super(primaryFormat, Collections.<String>emptyList(), customNotations, AffinityCalculationStrategy.WHOLE_STRING, autocomplete, autoskip, field, null, null, false);
     }
 
     @Override
