@@ -36,15 +36,26 @@ class TextInputMask: NSObject, RCTBridgeModule, MaskedTextFieldDelegateListener 
             DispatchQueue.main.async {
                 guard let view = viewRegistry?[reactNode] as? RCTBaseTextInputView else { return }
                 let textView = view.backedTextInputView as! RCTUITextField
-                let maskedDelegate = MaskedTextFieldDelegate(primaryFormat: mask, autocomplete: autocomplete, autoskip: autoskip) { (_, value, complete) in
+                // let maskedDelegate = MaskedTextFieldDelegate(primaryFormat: mask, autocomplete: autocomplete, autoskip: autoskip) { (_, value, complete) in
+                //     // trigger onChange directly to avoid trigger a second evaluation in native code (causes issue with some input masks like [00] {/} [00]
+                //     let textField = textView as! UITextField
+                //     view.onChange?([
+                //         "text": textField.text,
+                //         "target": view.reactTag,
+                //         "eventCount": view.nativeEventCount,
+                //     ])
+                // }
+                 let maskedDelegate = MaskedTextFieldDelegate(primaryFormat: mask, autocomplete: autocomplete, autoskip: autoskip, customNotations: [
+                    Notation(character: "*", characterSet: CharacterSet(charactersIn: "*"), isOptional: true)
+                  ]) { (_, value, complete) in
                     // trigger onChange directly to avoid trigger a second evaluation in native code (causes issue with some input masks like [00] {/} [00]
                     let textField = textView as! UITextField
                     view.onChange?([
-                        "text": textField.text,
-                        "target": view.reactTag,
-                        "eventCount": view.nativeEventCount,
+                      "text": textField.text,
+                      "target": view.reactTag,
+                      "eventCount": view.nativeEventCount,
                     ])
-                }
+                  }
                 maskedDelegate.listener = textView.delegate as? UITextFieldDelegate & MaskedTextFieldDelegateListener
                 let key = reactNode.stringValue
                 self.masks[key] = maskedDelegate
